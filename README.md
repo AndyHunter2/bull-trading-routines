@@ -1,60 +1,62 @@
-# Bull Trading Routines
+# Bull Trading Routines — Event-Driven BTC (Option C)
 
-Claude Code Routines that add Opus-level judgment to the Hunter Group paper-trading systems.
-Runs **remote** (Claude cloud), so the Mac can stay off.
+Claude Code Remote Triggers that run Andy Hunter's BTC event-driven trading system.
+Runs **remote** (Claude cloud), so the Mac stays off.
 
-## What runs where
+## Current status: v1 event-driven, no live trades yet
 
-| Layer | Where | Cadence | Why |
-|---|---|---|---|
-| BTC signal detection & execution | VPS (Python WebSocket scout) | 5-sec ticks | Latency-critical, routines can't fire this fast |
-| BTC regime parameters | **This repo** (routine) | Hourly | Scalper reads `crypto_regime` Supabase row; routine tunes it |
-| BTC daily outcome review | **This repo** (routine) | 22:00 UTC | Log learnings, commit to `/crypto/learnings/` |
-| BTC weekly pattern review | **This repo** (routine) | Sunday 10:00 UTC | Reweight entry pattern priors |
-| Dividend daily decisions | **This repo** (routine, future) | 06:30 BST | Replaces n8n Haiku-scoring workflow |
-| Dividend weekly review | **This repo** (routine, future) | Sunday 11:00 BST | Replaces n8n Sonnet review |
-| Dividend monthly review | Managed Agent (existing) | 1st of month | Keep as-is |
-| Price fetches (Yahoo OAuth2) | n8n (existing) | 18:30 daily | OAuth2 stays in n8n |
+This repo pivoted from a BB-bounce scalper to an event-driven strategy on **19 April 2026** after a 2-year backtest proved the scalper had no fee-covering edge at retail Binance fees. The scalper work is preserved in `crypto/archive/scalper-2026-04-17-to-19/` for reference.
+
+## Strategy in one sentence
+
+**Trade 5–15 high-conviction event reactions per year** (FOMC, CPI, ETF decisions, exchange hacks, regulatory moves), sized small, human-approved, held hours to days. Fees become a rounding error when event moves are 3–5%.
+
+See [`crypto/strategy/event-driven.md`](crypto/strategy/event-driven.md) for the full design.
 
 ## Directory layout
 
 ```
-/crypto/
-  routines/          Prompts for each scheduled routine
-  strategy/          Hand-edited strategy files (slow-changing)
-  brain/             Heuristics files that routines evolve
-  learnings/         One .md file per significant trade / pattern discovery
-/dividend/           (to be scaffolded when crypto is proven)
-/shared/
-  supabase-patterns.md    Common DB query recipes for routines
-  security.md             Env var rules, never-commit list
-CLAUDE.md            System-level guardrails loaded on every run
+crypto/
+  strategy/
+    event-driven.md              Human-owned strategy specification
+  brain/
+    event-playbooks.md           Historical BTC reactions to each event type
+  routines/
+    crypto-event-scan.md         Daily 08:00 UTC — scans for events, writes briefing
+    crypto-event-review.md       Post-trade — reviews outcome vs playbook
+  briefings/                     Daily + urgent event briefings (generated)
+  learnings/                     Post-trade outcomes + discoveries + proposals
+  archive/
+    scalper-2026-04-17-to-19/    Previous strategy (preserved, inactive)
+shared/
+  credentials.md                 Supabase anon key (safe to commit)
+  security.md                    Secret handling rules
+  supabase-patterns.md           DB query recipes
+CLAUDE.md                         Agent system instructions
 ```
 
-## Memory discipline
+## Active triggers
 
-Every routine run MUST:
-1. **Read** relevant files in `/crypto/strategy/`, `/crypto/brain/`, recent `/crypto/learnings/` before deciding
-2. **Do** its scheduled job
-3. **Write** back: update the relevant `brain/*.md` if a heuristic changed, drop a `learnings/YYYY-MM-DD-*.md` if something non-obvious was discovered
-4. **Commit** changes to `main` at end of run (routine permissions must allow unrestricted branch pushes)
+| Trigger | Schedule | Job |
+|---|---|---|
+| `crypto-event-scan` | Daily 08:00 UTC | Scan for upcoming events, write briefing |
+| `crypto-event-review` | Manual / post-trade | Review outcome vs playbook |
 
-Without the commit step, the next run has no memory of this one. That's the whole point.
-
-## Cost envelope
-
-Everything runs inside the existing Claude Pro subscription. No additional Max upgrade. If routine quotas become a limiting factor, the mitigations in order of preference are:
-1. Reduce non-essential routine calls (merge jobs)
-2. Shorter prompts (trim memory file reads to "recent 30 days" slices)
-3. Only then consider Max
+Disabled (preserved): `crypto-regime`, `crypto-close` (scalper-era).
 
 ## Kill switches
 
-- **Crypto regime**: set `crypto_regime.skip_entries = true` in Supabase → scalper stops entering within 60 seconds. Open positions still managed.
-- **Full scalper stop**: `systemctl stop crypto-realtime-scout` on VPS + set `crypto_config.realtime_enabled = false` (belt + braces)
-- **Routine stop**: disable the routine in Claude Desktop app
+| What | How |
+|---|---|
+| Pause event scanning | Disable `crypto-event-scan` in claude.ai/code/scheduled |
+| Stop all live trading | N/A — no live trading yet (v1 is human-approved only) |
+| Close a position | Manual via Binance dashboard — we're in paper mode, no real funds at risk |
+
+## How to interpret the briefings
+
+When `crypto/briefings/` has a new `URGENT-*.md` file, a Tier-1 event is within 24 hours and the routine has drafted a trade proposal. Andy reviews, approves or rejects, and the trade is executed (or not). The regular `YYYY-MM-DD-event-scan.md` files are informational only.
 
 ## See also
-- VPS scalper source: `/home/andy/backups/crypto_realtime_scout.py`
-- Supabase project: `jbhxfhtjfgyxkneopghl` (main)
-- Relevant tables: `crypto_config`, `crypto_regime`, `crypto_portfolio`, `crypto_trade_log`
+
+- Scout archive: `crypto/archive/scalper-2026-04-17-to-19/README.md`
+- VPS infrastructure: `/home/andy/backups/archive/crypto_realtime_scout.py.deactivated_2026-04-19`
