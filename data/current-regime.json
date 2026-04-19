@@ -1,10 +1,10 @@
 {
-  "regime": "dangerous",
+  "regime": "default",
   "position_pct": 30,
   "stop_loss_pct": 0.75,
   "take_profit_pct": 1.0,
   "skip_entries": true,
   "max_trades_per_hour": 6,
-  "reason": "Kelp DAO ~$293M DeFi exploit today (largest 2026 hack, <4h window); BTC at -0.94% vs 24h mid, below lower BB (74718 < 74791), RSI 32.9, 3h below EMA-50 — contagion selloff already visible. Parallel routine run at 19:05Z concluded default-skip on same snapshot without the news context; both agree skip=true.",
-  "source": "crypto-regime-routine-2026-04-19T19:01:19Z"
+  "reason": "No regime matches cleanly: price 74,718 below EMA-50 75,694 but streak only 3h (trending_down needs 6+); BB width 1.777% too wide for ranging_down (<1.0%); RSI 1h 32.9 just above <30 threshold for ranging_high_quality. Kelp DAO hack now ~4h past — falling out of the dangerous window; no FOMC/CPI/NFP in next 2h (FOMC is Apr 28-29). Default skip to avoid fee drag in unclassified conditions per backtest-priors.",
+  "source": "crypto-regime-routine-2026-04-19T20:00:00Z"
 }
