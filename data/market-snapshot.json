@@ -1,0 +1,30 @@
+{
+  "generated_at": "2026-04-19T18:39:49+00:00",
+  "source": "vps-market-snapshot",
+  "btc_usdt": {
+    "price": 74779.55,
+    "high_24h": 76240.66,
+    "low_24h": 74608.0,
+    "mid_24h": 75424.33,
+    "range_4h_pct": 2.07,
+    "bb_1h_20_2": {
+      "mid": 75464.9,
+      "lower": 74807.68,
+      "upper": 76122.12,
+      "width_pct": 1.742
+    },
+    "ema_50_1h": 75697.08,
+    "rsi_14_1h": 33.6,
+    "streak_above_ema50_1h": 0,
+    "streak_below_ema50_1h": 3
+  },
+  "btc_4h": {
+    "higher_highs_last_4": false,
+    "higher_lows_last_4": false,
+    "lower_highs_last_4": false,
+    "lower_lows_last_4": false,
+    "high_last": 78333.0,
+    "low_last": 70505.88
+  },
+  "funding_rate": -0.00012276
+}
