@@ -1,0 +1,18 @@
+# Credentials — never commit
+.env
+.env.*
+*.key
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Session scratch
+.claude/
+*.log
+scratch/
