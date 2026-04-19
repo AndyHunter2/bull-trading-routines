@@ -1,0 +1,10 @@
+{
+  "regime": "default",
+  "position_pct": 30,
+  "stop_loss_pct": 0.75,
+  "take_profit_pct": 1.0,
+  "skip_entries": false,
+  "max_trades_per_hour": 6,
+  "reason": "Bootstrap defaults matching the scalper's hardcoded params. Routine will replace this on first successful run.",
+  "source": "initial-file-seed"
+}

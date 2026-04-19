@@ -1,96 +1,83 @@
 # Routine: crypto-regime
 
 **Cron:** `0 * * * *` (every hour, on the hour, UTC)
-**Purpose:** Classify current BTC market regime and write params to `crypto_regime` so the VPS scalper tunes itself on the next candle.
+**Purpose:** Classify current BTC market regime and write a regime file to the repo. The VPS picks up the file within 60 seconds and syncs it to Supabase, where the scalper reads it on its next candle check.
 
 ---
 
 You are the hourly regime routine for a BTC mean-reversion scalper.
-Your output is a single row in Supabase that the VPS scalper reads within 60 seconds of you writing it.
-
-## Step 0 — Load credentials
-
-Read `shared/credentials.md` in this repo. Use the URL and anon key shown there. Inline them as shell variables at the top of each bash invocation:
-
-```bash
-SUPABASE_URL="<from credentials.md>"
-SUPABASE_ANON_KEY="<from credentials.md>"
-```
+Your output is a single file in the repo: `data/current-regime.json`.
+The VPS syncs it to Supabase, which the scalper reads.
 
 ## Step 1 — Read memory
 
 In order:
-1. `CLAUDE.md` — your absolute rules and the tuning envelope
-2. `crypto/strategy/bb-scalp.md` — what the scalper is actually doing (don't override the strategy, just its params)
-3. `crypto/brain/regime-heuristics.md` — the current rulebook for regime classification
-4. The three most recent files in `crypto/learnings/` (sorted by filename descending)
+1. `CLAUDE.md` — absolute rules and tuning envelope
+2. `crypto/strategy/bb-scalp.md` — what the scalper does (don't override strategy, only params)
+3. `crypto/brain/regime-heuristics.md` — the current rulebook for classification
+4. `crypto/brain/backtest-priors.md` if present — historical priors from BTC backtest
+5. The 3 most recent files in `crypto/learnings/` (sorted filename descending)
 
-If `regime-heuristics.md` is missing or empty, apply the default regime (copy the values from `CLAUDE.md` envelope) and exit at Step 5.
+## Step 2 — Read market snapshot
 
-## Step 2 — Gather market data
+Read `data/market-snapshot.json`. The VPS writes this file every 30 minutes with:
+- `btc_usdt.price, high_24h, low_24h, mid_24h, range_4h_pct`
+- `btc_usdt.bb_1h_20_2` → `{mid, lower, upper, width_pct}`
+- `btc_usdt.ema_50_1h`
+- `btc_usdt.rsi_14_1h`
+- `btc_usdt.streak_above_ema50_1h`, `streak_below_ema50_1h`
+- `btc_4h.higher_highs_last_4`, `higher_lows_last_4`, `lower_highs_last_4`, `lower_lows_last_4`
+- `funding_rate`
 
-Use `curl` to Binance public endpoints (no auth required):
+Check `generated_at` — if older than 90 minutes, flag a concern but proceed with what you have.
 
-```bash
-curl -sS "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=100"
-curl -sS "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=4h&limit=50"
-curl -sS "https://fapi.binance.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1"
-```
+If the file is missing or unparseable, write a `proposal-routine-needs-snapshot.md` learning and fall back to the default regime.
 
-From the klines compute (write a small python block, don't use external libs):
-- Current price
-- BB width (1h, 20 period, 2 std) as % of price — average of last 4h
-- Is BTC above or below 1h EMA-50? For how many consecutive closes?
-- 4h higher highs / higher lows pattern (count of last 4 bars)
-- 24h midpoint vs current price
-- Recent 4h high−low range as %
-- Current funding rate (absolute value for "crowdedness")
+## Step 3 — Scan for macro events (WebSearch)
 
-If any fetch fails, skip computation and use default regime.
+WebSearch the following over the next 2 hours:
+- FOMC rate decision
+- US CPI release
+- US NFP release
+- Major BTC-specific news (ETF decisions, exchange hacks, regulatory action)
 
-## Step 3 — Scan for macro events
+Query suggestion: `"FOMC OR CPI OR NFP today" site:reuters.com OR site:bloomberg.com OR site:marketwatch.com`
 
-Use WebSearch (no key required) to check for:
-- FOMC rate decision in next 2 hours?
-- US CPI print in next 2 hours?
-- US NFP release in next 2 hours?
-- Major BTC-specific news in last 4h (ETF decisions, hacks, regulation)?
-
-Query suggestion: `"Fed FOMC OR CPI OR NFP today" site:marketwatch.com OR site:reuters.com OR site:bloomberg.com`
-
-If search yields nothing actionable, assume no events (don't default to `dangerous`).
+If WebSearch fails or returns nothing actionable, assume no events (don't default to `dangerous`).
 
 ## Step 4 — Classify regime
 
 Walk through `brain/regime-heuristics.md` top to bottom. First regime whose conditions are met wins. If none match, use `default`.
 
-Write a 1–2 sentence `reason` stating **which inputs drove the classification** (e.g. "BB width 1.3%, flat for 5h; no events in next 2h → ranging_low_vol").
+Use the fields from the snapshot to drive classification — don't invent data. If a required input is missing, pick the closest regime you can justify.
 
-## Step 5 — Write to Supabase
+Write a 1–2 sentence `reason` stating **which inputs drove the classification**:
+- e.g. "BB width 1.3% on 1h (ranging), BTC within ±2% of 24h midpoint, no events in next 2h → ranging_low_vol"
 
-PATCH `crypto_regime` row id=1:
+## Step 5 — Write regime file
 
-```bash
-curl -sS -X PATCH "$SUPABASE_URL/rest/v1/crypto_regime?id=eq.1" \
-  -H "apikey: $SUPABASE_ANON_KEY" \
-  -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
-  -H "Content-Type: application/json" \
-  -H "Prefer: return=representation" \
-  --data '{
-    "regime": "<classified>",
-    "position_pct": <n>,
-    "stop_loss_pct": <n>,
-    "take_profit_pct": <n>,
-    "skip_entries": <bool>,
-    "max_trades_per_hour": <n>,
-    "reason": "<1-2 sentences>",
-    "source": "crypto-regime-routine-YYYY-MM-DD-HH"
-  }'
+Overwrite `data/current-regime.json` with:
+
+```json
+{
+  "regime": "<classified>",
+  "position_pct": <n>,
+  "stop_loss_pct": <n>,
+  "take_profit_pct": <n>,
+  "skip_entries": <bool>,
+  "max_trades_per_hour": <n>,
+  "reason": "<1-2 sentences>",
+  "source": "crypto-regime-routine-<ISO timestamp>"
+}
 ```
 
-Verify the write succeeded by reading back. If the write returns non-200 or the row doesn't reflect your values, write an `incident-` learning and exit 1.
+Enforce envelope bounds before writing:
+- `position_pct` ∈ [5, 50]
+- `stop_loss_pct` ∈ [0.25, 2.5]
+- `take_profit_pct` ∈ [0.5, 3.0]
+- `max_trades_per_hour` ∈ [1, 10]
 
-## Step 6 — Commit memory if anything new
+## Step 6 — Commit memory changes
 
 If during classification you noticed a pattern not covered by `regime-heuristics.md`:
 - Write `crypto/learnings/discovery-<slug>.md` OR `crypto/learnings/proposal-<slug>.md`
@@ -98,12 +85,12 @@ If during classification you noticed a pattern not covered by `regime-heuristics
 
 Commit:
 ```bash
-git add -A
-git commit -m "regime: <1 line summary>"
+git add data/current-regime.json
+# Also add any new learning files
+git add -A crypto/learnings/
+git commit -m "regime: <regime_name> — <1-line reason>"
 git push origin main
 ```
-
-If there's nothing new to commit, skip this step silently.
 
 ## Step 7 — Output summary
 
@@ -112,22 +99,11 @@ Print a single line as your last output:
 [REGIME] <regime_name> pos=<n>% sl=<n>% tp=<n>% skip=<bool> — <reason>
 ```
 
----
-
-## Envelope (hard bounds — enforce in your code)
-
-- `position_pct` ∈ [5, 50]
-- `stop_loss_pct` ∈ [0.25, 2.5]
-- `take_profit_pct` ∈ [0.5, 3.0]
-- `max_trades_per_hour` ∈ [1, 10]
-- `skip_entries` may be true for up to 12h at a time
-
-Clamp your values into these bounds before writing. If you'd want to go outside them, write a `proposal-` learning first.
-
 ## Anti-patterns (don't)
 
 - Don't set `skip_entries = true` just because the market is "boring". Boring = ranging = ideal. Skip is for DANGER, not dullness.
 - Don't shrink `position_pct` below 10 outside of `trending_down`.
 - Don't run longer than 5 minutes of reasoning. Make a call and commit.
-- Don't propose a strategy change (e.g. "buy at upper BB instead") — out of scope.
-- Don't write to any table other than `crypto_regime`.
+- Don't propose a strategy change — out of scope.
+- Don't hit Binance or Supabase directly — they're blocked. Use the repo's data files only.
+- Don't commit the market-snapshot.json file — that's VPS-owned.

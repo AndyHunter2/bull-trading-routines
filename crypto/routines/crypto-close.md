@@ -1,67 +1,60 @@
 # Routine: crypto-close
 
-**Cron:** `0 22 * * *` (22:00 UTC daily — after the 08-22 UTC trading session closes)
-**Purpose:** Review the day's trades, log learnings, commit memory.
+**Cron:** `0 22 * * *` (22:00 UTC daily — after 08–22 UTC trading session closes)
+**Purpose:** Review the day's trades from a committed VPS dump, log learnings, commit memory.
 
 ---
-
-You are the end-of-day review for the BTC scalper.
-
-## Step 0 — Load credentials
-
-Read `shared/credentials.md` and inline `SUPABASE_URL` + `SUPABASE_ANON_KEY`.
 
 ## Step 1 — Read memory
 
 - `CLAUDE.md`
 - `crypto/strategy/bb-scalp.md`
 - `crypto/brain/regime-heuristics.md`
-- Today's regime history (current row + anything you can infer from regimes mentioned in position `notes`)
+- `crypto/brain/backtest-priors.md` if present
+- Today's regime (from `data/current-regime.json`)
 
-## Step 2 — Pull today's trades
+## Step 2 — Read today's trade dump
 
-```bash
-TODAY=$(date -u +%Y-%m-%d)
-curl -sS "$SUPABASE_URL/rest/v1/crypto_trade_log?trade_date=eq.$TODAY&order=created_at.asc" \
-  -H "apikey: $SUPABASE_ANON_KEY" \
-  -H "Authorization: Bearer $SUPABASE_ANON_KEY"
-```
+Read `data/today-trades.json`. The VPS writes this at 22:05 UTC with:
+- Today's trade_log rows (BUY/SELL actions with pattern, rsi, regime, outcome)
+- Today's closed position rows (avg_buy_price, current_price, notes JSON)
+- End-of-day `crypto_config` state (cash, realised, unrealised)
 
-Also pull:
-- Today's closed positions: `crypto_portfolio?entry_date=eq.$TODAY`  (regime is in `notes` JSON)
-- Current `crypto_config` (cash, realised P&L, trades_today)
+If the file is missing (VPS writer hasn't run yet), write a `proposal-close-needs-trade-dump.md` learning and exit cleanly.
 
 ## Step 3 — Analyse
 
 For each closed trade (paired BUY + SELL), compute:
-- Entry regime (from BUY position's `notes.regime` — regime was recorded at entry)
-- Entry pattern (red_candle, hammer, doji)
+- Entry regime (from BUY row's `notes.regime`)
+- Entry pattern
 - Hold duration
 - Outcome (win/loss)
 - Exit reason (take_profit / stop_loss / time_stop / session_end)
 
-Bucket the day's trades by regime + pattern. If there's asymmetry (e.g. hammer pattern won 4/4 in `ranging_low_vol`, red_candle lost 3/4 in `trending_up`) and evidence is ≥ 3 trades, that's a learning worth writing.
+Bucket by regime + pattern. If there's asymmetry with ≥ 3 trades of evidence, that's a learning worth writing.
+
+Compare today's outcomes against the `backtest-priors.md` expectations:
+- Is today's win rate in line with historical priors for the regimes we traded?
+- Are any patterns significantly under- or over-performing their historical averages?
 
 ## Step 4 — Write learnings (if any)
 
-Only write if there's a genuinely new insight. "Won 2 of 3 today" is not a learning.
-
-Candidates worth writing:
-- A pattern-regime combination that significantly over- or under-performed (≥ 3 trades evidence)
-- A regime classification that in hindsight seems wrong (e.g. called it `ranging_low_vol` but BTC trended +3% — should have been `trending_up`)
-- A case where `skip_entries` was triggered and turned out correct or wrong
+Only write a learning if there's a genuinely new insight. Candidates:
+- Pattern-regime combination significantly differing from backtest priors (≥ 3 trades)
+- Regime classification that in hindsight was wrong
+- A case where `skip_entries` was triggered — was it correct?
 
 Format per `crypto/learnings/README.md`.
 
 ## Step 5 — Commit
 
 ```bash
-git add -A
+git add -A crypto/learnings/
 git commit -m "close: <N> trades, <net>, <win_rate>% win rate"
 git push origin main
 ```
 
-Commit even if no learnings written — the session log becomes context for next run.
+Commit even if no learnings — session log is context for next run.
 
 ## Step 6 — Output summary
 
@@ -73,5 +66,5 @@ Commit even if no learnings written — the session log becomes context for next
 
 - Don't write learnings with sample size 1.
 - Don't propose strategy changes from a single day.
-- Don't update `regime-heuristics.md` directly — write a `discovery-` learning first, let Andy promote it.
-- Don't write to any Supabase table. You're read-only in this routine.
+- Don't update `regime-heuristics.md` directly — propose via `discovery-` learning.
+- Don't hit Supabase. Read `data/today-trades.json` only.
