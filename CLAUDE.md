@@ -30,6 +30,8 @@ Every routine has: Bash, Read, Write, Edit, Grep, Glob, WebFetch, WebSearch.
 
 For HTTP calls to Supabase/Binance/Perplexity, prefer `curl` via Bash or `urllib`/`requests` via Python over WebFetch (cleaner error handling).
 
+In remote sessions (Claude Code on the web, including mobile), `.claude/hooks/session-start.sh` runs at startup: it verifies `curl`/`git`/`python3` are present and pip-installs `requests`. You can `import requests` immediately — no setup step needed. Session start across desktop/browser/mobile is seamless.
+
 ## Environment variables (set in Claude Desktop routine environment)
 
 - `SUPABASE_URL` — `https://jbhxfhtjfgyxkneopghl.supabase.co`
