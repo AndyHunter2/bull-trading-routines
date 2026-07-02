@@ -1,11 +1,75 @@
-# URGENT — Pre-Event Brief: US Non-Farm Payrolls June 2026 — 2026-07-02 12:30 UTC (T+~28.5h from scan)
+# URGENT — Pre-Event Brief: US Non-Farm Payrolls June 2026 — 2026-07-02 12:30 UTC (SCAFFOLD T-28.5h + T-4h REFRESH APPENDED)
 
-**Trigger:** Tier-1 event (NFP) inside 24h-window per URGENT-firing schedule (release lands within scan-day + 24h calendar window; T-4h refresh will fire on tomorrow's 07-02 scan).
+**Trigger:** Tier-1 event (NFP) inside 24h-window per URGENT-firing schedule (release lands within scan-day + 24h calendar window).
 **Strategy:** event-driven (Option C) — paper trade only.
 **Approval:** **REQUIRES Andy's explicit go/no-go before any execution.** This file is a proposal, not an order.
 **Precedent:** `URGENT-2026-06-17-pre-event.md` (FOMC — Scenario-A confirmed skip; template origin for this URGENT) + `URGENT-2026-06-05-pre-event.md` (last NFP URGENT — Layer-1-blocked skip-default) + `URGENT-2026-05-08-pre-event.md` (NFP URGENT precedent) + `URGENT-2026-04-29-pre-event.md` (FOMC — first URGENT ever, template origin).
-**Companion:** `2026-07-01-event-scan.md` (daily scan, same run).
-**Fires today per:** fourteen-consecutive-scans-with-no-URGENT chain BREAKS on this file. First URGENT since 06-17 FOMC (15-day gap).
+**Companion:** `2026-07-01-event-scan.md` (T-28.5h scaffold, prior day) + `2026-07-02-event-scan.md` (T-4h refresh, THIS RUN).
+**Update discipline:** original T-28.5h scaffold body PRESERVED below §T-4h REFRESH; the refresh section supersedes for any conflict.
+
+---
+
+## ⏰ T-4h REFRESH (2026-07-02 08:00 UTC scan — appended this run)
+
+**Time-to-release:** ~4.5h (NFP release 12:30 UTC today).
+**Refresh material inputs since T-28.5h scaffold** (see `2026-07-02-event-scan.md` for full context):
+
+### Resolved decision-inputs
+
+| Decision input | T-28.5h scaffold state | T-4h refresh state | Effect on URGENT |
+|---|---|---|---|
+| **Warsh Sintra amplifier direction** | market-default HAWKISH; N/A/H/D matrix defined | **BALANCED-MIXED tone confirmed** ("prices too high" + "inflation risks eased" + AI/structural focus); **NEUTRAL box** per amplifier matrix; weak-hawkish sub-threshold overlay | **NO ENVELOPE MODIFICATION.** Amplifier direction resolved to inaction. |
+| **Iran channel amplifier direction** | fourth-day-changed; partial-reversal-of-stand-down; channel-collapse risk MODERATE | **Iran-Doha talks CONCLUDED with positive progress + $6B frozen-assets unfrozen + communication channel opened + next meeting after Khamenei funeral July 9** | **LONG-side veto direction MATERIALLY SOFTENS.** SHORT-side amplification also softens. Channel-collapse risk now LOW-MODERATE. |
+| **Rule 3 BB-width-1h-<4%** | marginal-fail-risk; Andy direction required | **HARD-FAIL by objective test** — BTC intraday $57,891–$60,377 = 4.2% off midpoint > 4% threshold | **Absent Andy explicit size-down-continue direction, URGENT resolves to SKIP by strategy/event-driven.md v1 rule 3 enforcement.** |
+| **NFP consensus anchor** | four-way-split 100/110/130/172K; Andy anchor-selection required | **Consolidated to Bloomberg-median-115K + MUFG 112K + FXStreet 110K three-of-four cluster; Kiplinger 172K likely-conflated outlier** | **Under conservative-anchor Bloomberg-115K interpretation:** Scenarios (B) 150K CONDITIONAL-SHORT tightens to skip-boundary (+1.75σ sub-2σ); Scenario (C) SHORT threshold shifts 200K → ~170K; Scenarios (D) 80K CONDITIONAL-LONG tightens to boundary; Scenario (E) LONG threshold at ≤50K reconfirmed. |
+| **BTC pre-event tape** | $58.3k / $59.8k / $60.1k = $1.8k dispersion; softening | **Intraday $57,891 low (652-day low) + $60,377 high + $60,123 current +2.45% recovery**; $2.5k intraday range | Wider dispersion; recovery-in-progress; rule 3 hard-fail confirmed. |
+| **ADP + JOLTS + ISM Mfg actuals** | forecasts 118K/7.28M/53.8; released today | **Actuals NOT surfaced by this scan** (search-composite returned forecasts only) | Sub-threshold for URGENT-envelope-shift without actuals. |
+| **CME FedWatch July hold** | 89% → 70.1% erosion carry | **~70% hold standing**; secondary 30%-tail directional-ambiguity surfaced (cut vs hike) | Sub-threshold for URGENT-envelope-shift vs T-28.5h. |
+| **Khamenei funeral window** | not surfaced in T-28.5h scaffold | **July 4–9 across Tehran + Qom + Mashhad — overlaps NFP-post-release + weekend + US-holiday + Iran-US-next-Doha-meeting-post-funeral** | **REINFORCES T+8h time-stop routine recommendation** (T+12h/T+24h close would land inside Khamenei-funeral-day-1 with maximally-uncertain-Iran-side-tape). |
+
+### Refined scenario probabilities (T-4h with Bloomberg-115K conservative-anchor)
+
+| Scenario | Actual print vs 115K | Verdict under refined-anchor | Subjective probability (T-4h) |
+|---|---|---|---|
+| **(A) In-line 100–150K** | ±1.75σ or less | **SKIP per playbook.** | **~55%** (was ~50%) |
+| **(B) Small hot ~150K** | +1.75σ (sub-2σ) | **SKIP by conservative-anchor** (was CONDITIONAL-SHORT-if-100/110K-anchor); Kiplinger-172K-anchor produces sub-1σ so skip either way | **~5%** (was ~14%) |
+| **(C) Strong hot ≥170K** | +2.75σ+ vs Bloomberg-115K | **POTENTIALLY SHORT** (threshold shifted 200K → ~170K under Bloomberg-115K anchor) | **~10%** (was ~15% at 200K threshold) |
+| **(D) Small soft 75–80K** | −2σ | **CONDITIONAL LONG at boundary** (Bloomberg-anchor exact-2σ; Kiplinger-anchor >3σ) | **~5%** (was ~10%) |
+| **(E) Extreme soft ≤50K** | −3σ+ | **POTENTIALLY LONG** | **~4%** (unchanged) |
+| **(F) Extreme hot ≥250K** | +5.5σ+ | **POTENTIALLY SHORT** | **~5%** (was ~7%) |
+| **SKIP by rule 3 hard-fail** | any actual | **AUTO-SKIP** overrides scenario-fire | **~16%** (new — rule 3 hard-fail probability given no Andy direction) |
+
+**Convergent skip drivers (three, additively):**
+1. **Rule 3 hard-fail** (objective test, this scan): default routine skip absent Andy size-down-continue direction.
+2. **Andy-decision-points not landed** (as of 08:00 UTC scan-time): 10 outstanding decision points from T-28.5h scaffold Phase 0. Without ANY landed by 12:30 UTC release, URGENT skips regardless of scenario.
+3. **Conservative-anchor tightens (B)/(D) to skip-boundary:** Bloomberg-median-115K anchor as routine default reduces conditional-fire probability from combined ~24% to ~10%.
+
+**Composite default-expected path: SKIP** with probability **~70–75%** (dominated by scenario (A) in-line + rule-3-hard-fail overlap + no-Andy-pre-auth default).
+
+### Amplifier resolution (T-4h)
+
+- **Warsh Sintra:** NEUTRAL box per amplifier matrix — **NO envelope modification.** Weak-hawkish sub-threshold overlay ("prices too high") noted but does not cross threshold for hawkish-amplifier direction.
+- **Iran channel:** channel-collapse risk MATERIALLY REDUCED by Doha talks conclusion + $6B unfreezing + communication-channel-opening + next-meeting-scheduled-post-funeral. LONG-side veto direction **less binding than T-28.5h scaffold assumed.** SHORT-side amplification also softens.
+- **Khamenei funeral window:** T+8h time-stop routine recommendation **REINFORCED** (pre-holiday close 20:30 UTC Thu avoids Iran-side-uncertain-tape overlap).
+
+### Andy-decision-point status (as of T-4h scan)
+
+**None of the 10 T-28.5h Andy-decision-points have been landed** as of 08:00 UTC scan-time. **Trade window closes at 12:30 UTC NFP release** (4.5h from scan). Any decision landed before then remains actionable; after 12:30 UTC, URGENT resolves regardless.
+
+**Refresh-added Andy decision points:**
+- **(11)** Given Iran-Doha talks conclusion, does the Iran-channel-amplifier direction (decision point 8) change from "LONG-side veto" to "no-veto"? **Routine recommendation: no-veto direction given channel-collapse risk materially reduced.**
+- **(12)** Given Bloomberg-median-115K three-of-four cluster, does routine default to Bloomberg-115K as consensus-anchor (decision point 1)? **Routine recommendation: yes, Bloomberg-115K as default under conservative-anchor interpretation.**
+- **(13)** Given rule-3 hard-fail-by-objective-test (decision point 2), does routine default to skip (routine recommendation) or does Andy authorise size-down-continue? **Routine recommendation: skip on hard-fail unless explicit-authorise received before 12:30 UTC.**
+
+### T-4h refresh output summary
+
+```
+[URGENT-T-4h-REFRESH] NFP release TODAY 12:30 UTC (T-4.5h from scan); Warsh Sintra tone BALANCED-MIXED confirmed amplifier NEUTRAL box no envelope modification; Iran-Doha talks CONCLUDED positive progress $6B frozen-assets unfrozen communication-channel opened next-meeting-after-Khamenei-funeral-July-9 channel-collapse risk MATERIALLY REDUCED LONG-side-veto direction less binding; BTC intraday $57,891 652-day-low then recovered to $60,123 +2.45% wide $2.5k intraday range RULE 3 HARD-FAIL by objective test 4.2% off midpoint > 4% threshold; NFP consensus consolidated to Bloomberg-median-115K + MUFG 112K + FXStreet 110K three-of-four cluster only Kiplinger 172K likely-conflated outlier scenarios B/D tighten to skip-boundary C SHORT threshold shifts 200K → 170K; Khamenei funeral July 4-9 overlaps NFP-post-release + weekend + US-holiday + Iran-US-next-Doha-meeting-post-funeral T+8h time-stop routine recommendation REINFORCED; 10 T-28.5h Andy-decision-points NOT LANDED as of scan-time trade window closes 12:30 UTC 4.5h from scan; 3 refresh-added decision points 11-Iran-no-veto 12-Bloomberg-115K-default-anchor 13-rule-3-skip-default; refined scenarios A 55% skip / B 5% (was 14) skip-by-conservative-anchor / C 10% SHORT ≥170K threshold / D 5% (was 10) CONDITIONAL-LONG boundary / E 4% LONG ≤50K / F 5% SHORT ≥250K / SKIP-BY-RULE-3-HARD-FAIL 16%; composite default expected path SKIP ~70-75% probability; META-overlay 06-05 AT-LAPSED-DEADLINE-SEVENTEEN-DAYS softened potentially 3-of-4 → 2-of-4 by Iran-talks-conclusion; oil-shock 06-12 20d today Iran-talks-conclusion walks back yesterday's slight-reinforcement status-quo; URGENT-06-17 Scenario-C pre-auth matrix TRADE WINDOW CLOSES 12:30 UTC TODAY 13 decision points outstanding without any landed URGENT resolves skip-default n=2 URGENTs-elapsed-without-pre-auth-matrix
+```
+
+---
+
+## ORIGINAL T-28.5h SCAFFOLD (preserved below — supersede-by-refresh above where conflict)
 
 ---
 
